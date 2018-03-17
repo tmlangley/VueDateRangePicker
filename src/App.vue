@@ -1,19 +1,49 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+
+    <Calendar :month="currentMonth" />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+  import { DateTime } from 'luxon';
+  import Calendar from './components/Calendar';
 
-export default {
-  name: 'app',
-  components: {
-    HelloWorld
+  export default {
+    name: 'app',
+    data() {
+      return {
+        focusDate: null,
+        currentMonth: []
+      }
+    },
+
+    created() {
+      this.currentMonth = this.getMonth(DateTime.local());
+    },
+
+    methods: {
+      getMonth(dt) {
+        const monthStart = DateTime.fromObject({month: dt.month, year: dt.year});
+        let currentDay = monthStart.minus({
+          day: monthStart.weekday,
+        });
+
+        let month = [];
+        for (let i = 0; i < 42; i++) {
+          month.push({
+            displayDay: currentDay.day,
+            date: currentDay
+          });
+          currentDay = currentDay.plus({day: 1});
+        }
+
+        return month;
+      }
+    },
+
+    components: {Calendar}
   }
-}
 </script>
 
 <style>
