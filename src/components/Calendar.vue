@@ -2,48 +2,89 @@
 
   <div class="calendar">
     <div class="weekdays">
-      <div class="weekday" v-for="weekday in weekdays">
+      <div class="weekday" v-for="(weekday, i) in weekdays" :key="i">
         {{weekday}}
       </div>
     </div>
     <div class="days" v-on:mouseenter="setActive" v-on:mouseleave="setInactive">
-      <button
-        v-on:click="select(day.date)"
-        v-on:keyup.enter="select(day.date)"
+      <div
+        v-on:click.prevent="select(day.date)"
         v-on:mouseenter="hover(day.date)"
-        v-on:keydown="moveFocus($event, index)"
         v-for="(day, index) in month"
         :key="index" class="day"
         :ref="`day_${index}`"
         :class="{
         selected: (startDate && startDate.hasSame(day.date, 'day'))
         || (endDate && endDate.hasSame(day.date, 'day')),
-        range: startDate && endDate
+        range: range ? isInRange(day.date) : '',
+        notInMonth: midMonth.month !== day.date.month,
+        currentDay: currentDay.hasSame(day.date, 'day'),
+        focus: focusIndex && focusIndex === index
       }"
       >
         {{day.displayDay}}
-      </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+  import { DateTime } from 'luxon';
   export default {
     name: "calendar",
     data() {
       return {
-        focusIndex: null,
         startDate: null,
         endDate: null,
         hoverDate: null,
         isActive: false,
         selectedDates: [],
+        currentDay: DateTime.local(),
         weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      }
+    },
+    computed: {
+      midMonth() {
+        return this.month[15].date;
       }
     },
     props: {
       month: {
         type: Array
+      },
+      range: {
+        type: Boolean
+      },
+      start: {
+        type: Object
+      },
+      end: {
+        type: Object
+      },
+      focusIndex: {
+        type: Number
+      }
+    },
+
+    watch: {
+      start(newVal) {
+        this.startDate = newVal;
+      },
+
+      end(newVal) {
+        this.endDate = newVal;
+      },
+
+      startDate(newVal) {
+        this.$emit('startDateChanged', newVal);
+      },
+
+      endDate(newVal) {
+        this.$emit('endDateChanged', newVal);
+      },
+
+      focusIndex(newVal) {
+        this.$emit('focusChanged', this.month[newVal].date);
       }
     },
 
@@ -75,13 +116,12 @@
         }
 
         if (nextFocus !== null) {
-          this.$refs[`day_${nextFocus}`][0].focus();
+          this.focusIndex = nextFocus;
         }
       },
 
       select(date) {
-        if (this.startDate && !this.endDate
-          && date.ts > this.startDate.ts) {
+        if (this.range && this.startDate && !this.endDate && date.ts > this.startDate.ts) {
           this.endDate = date;
         } else {
           this.startDate = date;
@@ -97,6 +137,14 @@
       },
       setInactive() {
         this.isActive = false;
+      },
+
+      isInRange(date) {
+        return (this.startDate && this.startDate.ts < date.ts && !date.hasSame(this.startDate, 'day'))
+          && (
+            this.endDate && this.endDate.ts > date.ts && !date.hasSame(this.endDate, 'day')
+            || (this.hoverDate && !this.endDate && this.hoverDate.ts > date.ts && !date.hasSame(this.hoverDate, 'day'))
+          );
       }
     }
   }
@@ -118,7 +166,7 @@
 
   .weekday {
     flex: 1;
-    width: 0;
+    width: 14.285714286%;
     flex-basis: 14.285714286%;
     text-align: center;
     padding: 5px 0;
@@ -126,29 +174,27 @@
 
   .day {
     flex: 1;
-    width: 0;
+    width: 14.285714286%;
     flex-basis: 14.285714286%;
-    padding: 1em;
+    padding: 7px 0;
     touch-action: manipulation;
     background: #fff;
     appearance: none;
+    cursor: pointer;
   }
 
-  .day:hover,
-  .day:focus,
-  .day:active {
-    outline: 0 none;
-    background: #00c3c3;
+  .currentDay {
+    background: #ddd;
   }
 
-  .range.selected ~ * {
+  .range {
     background: slategray;
     color: #fff;
   }
 
-  .range.selected ~ .selected ~ * {
-    background: transparent;
-    color: black;
+  /*.selected.range ~ .selected ~ .notInMonth,*/
+  .notInMonth {
+    color: #999;
   }
 
   .day.selected {
@@ -156,5 +202,13 @@
     color: #fff;
   }
 
+  .day.focus {
+    outline: 0 none;
+    background: #00c3c3;
+  }
+
+  .day:hover {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1) inset;
+  }
 
 </style>

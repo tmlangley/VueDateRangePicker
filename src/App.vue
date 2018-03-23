@@ -1,58 +1,33 @@
 <template>
   <div id="app">
-
-    <Calendar :month="currentMonth" />
+    <date-picker />
+    <!--<h2>Standalone</h2>-->
+    <!--<standalone :range="false" />-->
+    <!--<h2>Range</h2>-->
+    <!--<standalone :range="true" />-->
   </div>
 </template>
 
 <script>
-  import { DateTime } from 'luxon';
-  import Calendar from './components/Calendar';
+  import Standalone from './components/StandaloneCalendar';
+  import DatePicker from './components/DatePicker';
 
   export default {
     name: 'app',
+    components: { Standalone, DatePicker },
     data() {
-      return {
-        focusDate: null,
-        currentMonth: []
-      }
-    },
-
-    created() {
-      this.currentMonth = this.getMonth(DateTime.local());
-    },
-
-    methods: {
-      getMonth(dt) {
-        const monthStart = DateTime.fromObject({month: dt.month, year: dt.year});
-        let currentDay = monthStart.minus({
-          day: monthStart.weekday,
-        });
-
-        let month = [];
-        for (let i = 0; i < 42; i++) {
-          month.push({
-            displayDay: currentDay.day,
-            date: currentDay
-          });
-          currentDay = currentDay.plus({day: 1});
-        }
-
-        return month;
-      }
-    },
-
-    components: {Calendar}
+      return {}
+    }
   }
+
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+  #app {
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+  }
 </style>
