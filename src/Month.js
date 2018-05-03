@@ -55,12 +55,6 @@ export default class Month {
     return match.length ? match[0] : null;
   }
 
-  setState(key, dateTime) {
-    if (this.states.hasOwnProperty(key)) {
-      this.states[key] = this.getDay(dateTime);
-    }
-  }
-
   setHover(day) {
     if (this.states.start && !this.states.end) {
       this.hasRange = day.ts > this.states.start.ts;

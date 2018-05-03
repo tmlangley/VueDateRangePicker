@@ -1,10 +1,6 @@
 <template>
   <div id="app">
     <date-picker />
-    <!--<h2>Standalone</h2>-->
-    <!--<standalone :range="false" />-->
-    <!--<h2>Range</h2>-->
-    <!--<standalone :range="true" />-->
   </div>
 </template>
 
