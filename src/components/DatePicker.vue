@@ -163,13 +163,13 @@
         const newDate = DateTime.fromISO(val);
 
         if (newDate.isValid) {
-          this.startDate = newDate;
-          this.setStart(newDate);
+          // this.startDate = newDate;
+          // this.setStart(newDate);
           if (!this.endDate) {
             this.startDate = newDate;
           }
           if (this.endDate && this.endDate && newDate.diff(this.endDate.minus({days: 1})).milliseconds > 0) {
-            this.setStart(newDate);
+            this.startDate = newDate;
             this.endDate = this.startDate.plus({days: 1});
           } else {
             this.endDate = null;
@@ -189,7 +189,7 @@
         }
         const newDate = DateTime.fromISO(val);
         if (newDate.isValid) {
-          this.setEnd(newDate);
+          this.endDate = newDate;
         }
       }
     },
@@ -257,16 +257,6 @@
       handleInputFocus(input) {
         this.calendarFocus = false;
         this.calendarOpen = true;
-      },
-
-      setStart(val) {
-        this.startDate = val;
-        this.startUpdateCount = this.startUpdateCount+1;
-      },
-
-      setEnd(val) {
-        this.endDate = val;
-        this.endUpdateCount = this.endUpdateCount+1;
       },
 
       startChanged(newDate) {

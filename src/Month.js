@@ -75,6 +75,14 @@ export default class Month {
     this.hasRange = this.states.start && this.states.end;
   }
 
+  selectEnd(dateTime) {
+    let { start } = this.states;
+    if (start && dateTime.diff(start.dt).toObject().milliseconds > 0) {
+      this.states.end = this.getDay(dateTime);
+      this.hasRange = true;
+    }
+  }
+
   _selectDay(dateTime) {
     let { start, end } = this.states;
     const day = this.getDay(dateTime);

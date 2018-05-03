@@ -77,7 +77,7 @@
       },
 
       nextEnd(val) {
-        this.selectDay(val);
+        this.selectDay(val, true)
       },
 
       start(val) {
@@ -94,8 +94,13 @@
     },
 
     methods: {
-      selectDay(dt) {
-        this.month.selectDay(dt);
+      selectDay(dt, forceSetEnd = false) {
+        if (forceSetEnd) {
+          this.month.selectEnd(dt);
+        } else {
+          this.month.selectDay(dt);
+        }
+
         this.hasRange = this.month.hasRange;
         this.start = this.month.getStartDate();
         this.end = this.month.getEndDate();
