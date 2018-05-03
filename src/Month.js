@@ -55,7 +55,12 @@ export default class Month {
     return match.length ? match[0] : null;
   }
 
-  setHover(day) {
+  setHover(day = null) {
+    if (day === null) {
+      this._days.forEach(d => d.isInRange = false);
+      return null;
+    }
+
     if (this.states.start && !this.states.end) {
       this.hasRange = day.ts > this.states.start.ts;
       this._days.forEach(d => {
@@ -65,6 +70,7 @@ export default class Month {
   }
 
   selectDay(dateTime) {
+    this.setHover();
     this._selectDay(dateTime);
     this.hasRange = this.states.start && this.states.end;
   }
