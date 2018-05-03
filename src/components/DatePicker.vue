@@ -1,45 +1,47 @@
 <template>
-  <div class="datePicker">
+  <div class="datePicker" :class="calendarOpen ? 'open' : 'closed'">
     <div class="datePickerDropdown" v-show="calendarOpen">
-      <standalone-calendar
-        :range="range"
-        :start="startDate"
-        :end="endDate"
-        :focusIndex="focusIndex"
+      <calendar-month
         ref="calendar"
+        :nextStart="startDate"
+        :nextEnd="endDate"
         @startChanged="startChanged"
         @endChanged="endChanged"
-        @focusChanged="focusChanged"
         @stopBlur="stopBlur = true"
       />
     </div>
     <div class="inputs">
-      <input
-        type="text"
-        ref="start"
-        :value="startStringFormat"
-        @input="setIfValid('startDate', $event.target.value)"
-        @focus="handleInputFocus"
-        @blur.prevent="handleBlur"
-        @keyup.esc="calendarOpen=false"
-        @keydown="moveFocus($event)"
-        @keydown.enter="selectFocusedDay"
-        @click="calendarFocus=false"
-      >
+      <div class="form-element start">
+        <label for="datepicker-start">{{ startLabel }}</label>
+        <input
+          id="datepicker-start"
+          type="text"
+          ref="start"
+          v-model="startInput"
+          @focus="handleInputFocus('start')"
+          @blur.prevent="handleBlur"
+          @keyup.esc="calendarOpen=false"
+          @keydown="moveFocus($event)"
+          @click="calendarFocus=false"
+        >
+        <span class="display-date">{{ startFormat }}</span>
+      </div>
 
-      <input
-        ref="end"
-        type="text"
-        :value="endStringFormat"
-        v-if="showStartEndFields"
-        @keyup="setIfValid('endDate', $event.target.value)"
-        @keyup.esc="calendarOpen=false"
-        @focus="handleInputFocus"
-        @blur.prevent="handleBlur"
-        @keydown="moveFocus($event)"
-        @keydown.enter="selectFocusedDay"
-        @click="calendarFocus=false"
-      >
+      <div class="form-element end">
+        <label for="datepicker-end">{{ endLabel }}</label>
+        <input
+          id="datepicker-end"
+          type="text"
+          ref="end"
+          v-model="endInput"
+          @focus="handleInputFocus('end')"
+          @blur.prevent="handleBlur"
+          @keyup.esc="calendarOpen=false"
+          @keydown="moveFocus($event)"
+          @click="calendarFocus=false"
+        >
+        <span class="display-date">{{ endFormat }}</span>
+      </div>
     </div>
 
   </div>
@@ -47,15 +49,12 @@
 
 <script>
   import { DateTime } from 'luxon';
-  import StandaloneCalendar from './StandaloneCalendar';
+  import CalendarMonth from './CalendarMonth';
 
   export default {
     name: "date-picker",
-    components: {StandaloneCalendar},
+    components: {CalendarMonth},
     props: {
-      format: {
-        default: 'M/d/y'
-      },
       range: {
         type: Boolean,
         default: true
@@ -64,45 +63,133 @@
         type: Boolean,
         default: true
       },
-      startingDate: {
+      format: {
+        type: Object,
+        default: () => {
+          return {
+            month: 'short',
+            day: 'numeric'
+          }
+        }
+      },
+      start: {
         type: Object,
         default: () => {
           return DateTime.local()
         }
       },
+      end: {
+        type: Object,
+        default: () => {
+          return DateTime.local().plus({day: 1})
+        }
+      },
+      startLabel: {
+        type: String
+      },
+      endLabel: {
+        type: String
+      }
     },
     data() {
       return {
         startDate: null,
         endDate: null,
+        trueStart: null,
+        trueEnd: null,
         calendarOpen: false,
         focusIndex: null,
         focusDate: null,
         stopBlur: false,
         userInput: false,
-        calendarFocus: false
+        calendarFocus: false,
+        startInput: '',
+        endInput: '',
+        lockStart: false,
+        lockEnd: false,
       }
     },
 
+    created() {
+      this.startDate = this.start;
+      this.endDate = this.end;
+      this.trueStart = this.start;
+      this.trueEnd = this.end;
+      this.startInput = this.start ? this.start.toISODate() : '';
+      this.endInput = this.end ? this.end.toISODate() : '';
+    },
+
     computed: {
-      startStringFormat() {
-        return this.startDate ? this.startDate.toFormat(this.format) : '';
+      startFormat() {
+        if (this.trueStart) {
+          if (this.trueStart.hasSame(DateTime.local(), 'day')) {
+            return "Today";
+          }
+        }
+        return this.startDate ? this.trueStart.toLocaleString(this.format) : '';
       },
-      endStringFormat() {
-        return this.endDate ? this.endDate.toFormat(this.format) : '';
+      endFormat() {
+        if (this.trueEnd) {
+          if (this.trueEnd.hasSame(DateTime.local().plus({ days: 1}), 'day')) {
+            return "Tomorrow";
+          }
+        }
+        return this.trueEnd ? this.trueEnd.toLocaleString(this.format) : '';
       }
     },
 
     watch: {
       calendarOpen(newval) {
         if (!newval) {
-          this.calendarFocus=false;
+          this.calendarFocus = false;
+        }
+      },
+
+      startInput(val) {
+        if (this.lockStart) {
+          this.lockStart = false;
+          return;
+        }
+
+        if (!val.length) {
+          this.startDate = null;
+          return;
+        }
+
+        if (val.length !== 10) return;
+
+        const newDate = DateTime.fromISO(val);
+
+        if (newDate.isValid) {
+          this.startDate = newDate;
+          this.setStart(newDate);
+          if (!this.endDate) {
+            this.startDate = newDate;
+          }
+          if (this.endDate && this.endDate && newDate.diff(this.endDate.minus({days: 1})).milliseconds > 0) {
+            this.setStart(newDate);
+            this.endDate = this.startDate.plus({days: 1});
+          } else {
+            this.endDate = null;
+            this.startDate = newDate;
+          }
+        }
+      },
+
+      endInput(val) {
+        if (this.lockEnd) {
+          this.lockEnd = false;
+          return;
+        }
+        if (!val.length) {
+          this.endDate = null;
+          return;
+        }
+        const newDate = DateTime.fromISO(val);
+        if (newDate.isValid) {
+          this.setEnd(newDate);
         }
       }
-    },
-
-    created() {
-      this.startDate = this.startingDate;
     },
 
     methods: {
@@ -165,46 +252,39 @@
         }
       },
 
-      handleInputFocus() {
+      handleInputFocus(input) {
         this.calendarFocus = false;
         this.calendarOpen = true;
       },
 
-      selectFocusedDay() {
-        if (this.userInput) {
-          this.userInput = false;
-          return;
-        }
-        if (this.focusDate) {
-          if (this.startDate && !this.endDate && this.focusDate.ts > this.startDate.ts) {
-            this.endDate = this.focusDate;
-          } else {
-            this.startDate = this.focusDate;
-            this.endDate = null;
-          }
-        }
+      setStart(val) {
+        this.startDate = val;
+        this.startUpdateCount = this.startUpdateCount+1;
       },
 
-      setIfValid(variable, val) {
-        const newDate = DateTime.fromFormat(val, this.format);
-        if (newDate.isValid) {
-          this.userInput = true;
-          this.focusDate = newDate;
-          this[variable] = newDate;
-        }
-        if (!val.length && variable === 'endDate') {
-          this.endDate = null;
-        }
+      setEnd(val) {
+        this.endDate = val;
+        this.endUpdateCount = this.endUpdateCount+1;
       },
+
       startChanged(newDate) {
-        this.startDate = newDate;
+        this.lockStart = true;
+        this.startInput = newDate.toISODate();
+        this.trueStart = newDate;
+        this.$emit('startChanged', newDate);
       },
+
       endChanged(newDate) {
-        this.endDate = newDate;
+        this.lockEnd = true;
+        this.endInput = newDate.toISODate();
+        this.trueEnd = newDate;
+        this.$emit('endChanged', newDate);
       },
+
       focusChanged(date) {
         this.focusDate = date;
       },
+
       handleBlur() {
         if (this.stopBlur) {
           this.stopBlur = false;
@@ -216,17 +296,5 @@
   }
 </script>
 
-<style scoped>
-  .datePicker {
-    position: relative;
-    max-width: 300px;
-    min-width: 200px;
-  }
-
-  .datePickerDropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-  }
-
+<style lang="scss">
 </style>

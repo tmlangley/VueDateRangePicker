@@ -6,21 +6,22 @@
         {{weekday}}
       </div>
     </div>
-    <div class="days" v-on:mouseenter="setActive" v-on:mouseleave="setInactive">
+    <div class="days" v-on:mouseenter="setActive" v-on:mouseleave="setInactive" :class="{hasRange: (hoverDate && startDate && hoverDate.ts > startDate.ts) || endDate}">
       <div
         v-on:click.prevent="select(day.date)"
         v-on:mouseenter="hover(day.date)"
         v-for="(day, index) in month"
         :key="index" class="day"
         :ref="`day_${index}`"
-        :class="{
-        selected: (startDate && startDate.hasSame(day.date, 'day'))
-        || (endDate && endDate.hasSame(day.date, 'day')),
+        :class="[
+        (startDate && startDate.hasSame(day.date, 'day')) ? 'selected start' : '',
+        (endDate && endDate.hasSame(day.date, 'day')) ? 'selected end' : '',
+        {
         range: range ? isInRange(day.date) : '',
         notInMonth: midMonth.month !== day.date.month,
         currentDay: currentDay.hasSame(day.date, 'day'),
-        focus: focusIndex && focusIndex === index
-      }"
+        focus: focusI && focusI === index
+      }]"
       >
         {{day.displayDay}}
       </div>
@@ -39,6 +40,7 @@
         hoverDate: null,
         isActive: false,
         selectedDates: [],
+        focusI: null,
         currentDay: DateTime.local(),
         weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
       }
@@ -84,7 +86,13 @@
       },
 
       focusIndex(newVal) {
-        this.$emit('focusChanged', this.month[newVal].date);
+        this.focusI = newVal;
+      },
+
+      focusI(newVal) {
+        if (newVal !== null) {
+          this.$emit('focusChanged', this.month[newVal].date);
+        }
       }
     },
 
@@ -116,7 +124,7 @@
         }
 
         if (nextFocus !== null) {
-          this.focusIndex = nextFocus;
+          this.focusI = nextFocus;
         }
       },
 
@@ -130,6 +138,7 @@
       },
 
       hover(date) {
+        this.focusI = null;
         this.hoverDate = date;
       },
       setActive() {
@@ -150,65 +159,3 @@
   }
 </script>
 
-<style scoped>
-  .calendar {
-    max-width: 500px;
-    width: 100%;
-  }
-
-
-  .weekdays,
-  .days {
-    display: flex;
-    flex-flow: row wrap;
-    width: 100%;
-  }
-
-  .weekday {
-    flex: 1;
-    width: 14.285714286%;
-    flex-basis: 14.285714286%;
-    text-align: center;
-    padding: 5px 0;
-  }
-
-  .day {
-    flex: 1;
-    width: 14.285714286%;
-    flex-basis: 14.285714286%;
-    padding: 7px 0;
-    touch-action: manipulation;
-    background: #fff;
-    appearance: none;
-    cursor: pointer;
-  }
-
-  .currentDay {
-    background: #ddd;
-  }
-
-  .range {
-    background: slategray;
-    color: #fff;
-  }
-
-  /*.selected.range ~ .selected ~ .notInMonth,*/
-  .notInMonth {
-    color: #999;
-  }
-
-  .day.selected {
-    background: teal;
-    color: #fff;
-  }
-
-  .day.focus {
-    outline: 0 none;
-    background: #00c3c3;
-  }
-
-  .day:hover {
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.1) inset;
-  }
-
-</style>

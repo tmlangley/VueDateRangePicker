@@ -1,11 +1,11 @@
 <template>
   <div class="calendar-dropdown" v-on:mousedown="stopBlur">
-    <div class="date">
-      {{`${monthDateTime.monthLong}, ${monthDateTime.year}`}}
-    </div>
     <div class="controls">
-      <div class="back" v-on:click="getLastMonth">Back</div>
-      <div class="forward" v-on:click="getNextMonth">Forward</div>
+      <div class="back" v-on:click="getLastMonth">&lt;</div>
+      <div class="date">
+        {{monthDateTime.monthLong}}
+      </div>
+      <div class="forward" v-on:click="getNextMonth">&gt;</div>
     </div>
 
     <Calendar
