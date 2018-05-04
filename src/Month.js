@@ -1,15 +1,22 @@
 import { DateTime } from 'luxon';
 import Day from './Day';
+import NoSelection from './input-states/NoSelection';
 
 export default class Month {
   constructor(dt = DateTime.local(), options = null) {
     this.dt = dt;
     this.ts = dt.ts;
     this.month = dt.month;
+    if (options && options.hasOwnProperty('childMonth') && !options.childMonth) {
+      this.prevMonth = new Month(dt.minus({ months: 1 }), { childMonth: true });
+      this.nextMonth = new Month(dt.plus({ months: 1 }), { childMonth: true });
+    }
     this.currentDay = dt.day;
     this._days = this.getDays();
     const start = options && options.hasOwnProperty('start') ? options.start : null;
     const end = options && options.hasOwnProperty('end') ? options.end : null;
+
+    this.state = NoSelection;
 
     this.states = {
       hover: null,
@@ -69,46 +76,11 @@ export default class Month {
     }
   }
 
-  selectDay(dateTime) {
+  selectDay(day, type, field = null) {
     this.setHover();
-    this._selectDay(dateTime);
+    this.state.selectDay(this, day instanceof Day ? day : this.getDay(day), type, field);
     this.hasRange = this.states.start && this.states.end;
   }
-
-  selectEnd(dateTime) {
-    let { start } = this.states;
-    if (start && dateTime.diff(start.dt).toObject().milliseconds > 0) {
-      this.states.end = this.getDay(dateTime);
-      this.hasRange = true;
-    }
-  }
-
-  _selectDay(dateTime) {
-    let { start, end } = this.states;
-    const day = this.getDay(dateTime);
-
-    if (!start) {
-      this.states.start = day;
-      this.states.end = null;
-      return;
-    }
-
-    if (start && dateTime.diff(start.dt).toObject().milliseconds < 0) {
-      this.states.start = day;
-      return;
-    }
-
-    if (!end) {
-      this.states.end = day;
-      return;
-    }
-
-    if (start && end) {
-      this.states.start = day;
-      this.states.end = null;
-    }
-  }
-
 
   inRange(dt) {
     let { start, end } = this.states;

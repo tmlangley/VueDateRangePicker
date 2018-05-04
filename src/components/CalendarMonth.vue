@@ -18,7 +18,7 @@
           v-if="days"
           v-for="(day, index)
              in days"
-          @click="selectDay(day.dt)"
+          @click="selectDay(day, 'Mouse')"
           @mouseover="setHover(day)"
           :key="index" class="day"
           :class="[
@@ -56,15 +56,6 @@
 
     props: ['nextStart', 'nextEnd'],
 
-    created() {
-      if (this.nextStart) {
-        this.selectDay(this.nextStart);
-      }
-      if (this.nextEnd) {
-        this.selectDay(this.nextEnd);
-      }
-    },
-
     computed: {
       days() {
         return [...this.month]
@@ -73,11 +64,11 @@
 
     watch: {
       nextStart(val) {
-        this.selectDay(val);
+        this.selectDay(val, 'Manual', 'start');
       },
 
       nextEnd(val) {
-        this.selectDay(val, true)
+        this.selectDay(val, 'Manual', 'end');
       },
 
       start(val) {
@@ -94,13 +85,8 @@
     },
 
     methods: {
-      selectDay(dt, forceSetEnd = false) {
-        if (forceSetEnd) {
-          this.month.selectEnd(dt);
-        } else {
-          this.month.selectDay(dt);
-        }
-
+      selectDay(dt, type, field = null) {
+        this.month.selectDay(dt, type, field);
         this.hasRange = this.month.hasRange;
         this.start = this.month.getStartDate();
         this.end = this.month.getEndDate();

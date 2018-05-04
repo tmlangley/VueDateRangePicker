@@ -18,6 +18,9 @@
           type="text"
           ref="start"
           maxlength="10"
+          pattern="^[0-9][0-9][0-9][0-9](-[0-1][0-9](-[0-3][0-9])?)?$"
+          title="This value must be a valid date in ISO format (yyyy-mm-dd)"
+          :placeholder='`Ex. "${today.toISODate()}"`'
           v-model="startInput"
           @focus="handleInputFocus('start')"
           @blur.prevent="handleBlur"
@@ -35,6 +38,8 @@
           type="text"
           ref="end"
           maxlength="10"
+          pattern="^[0-9][0-9][0-9][0-9](-[0-1][0-9](-[0-3][0-9])?)?$"
+          :placeholder='`Ex. "${tomorrow.toISODate()}"`'
           v-model="endInput"
           @focus="handleInputFocus('end')"
           @blur.prevent="handleBlur"
@@ -109,6 +114,8 @@
         endInput: '',
         lockStart: false,
         lockEnd: false,
+        today: DateTime.local(),
+        tomorrow: DateTime.local().plus({ days: 1 })
       }
     },
 
@@ -124,7 +131,7 @@
     computed: {
       startFormat() {
         if (this.trueStart) {
-          if (this.trueStart.hasSame(DateTime.local(), 'day')) {
+          if (this.trueStart.hasSame(this.today, 'day')) {
             return "Today";
           }
         }
@@ -132,7 +139,7 @@
       },
       endFormat() {
         if (this.trueEnd) {
-          if (this.trueEnd.hasSame(DateTime.local().plus({ days: 1}), 'day')) {
+          if (this.trueEnd.hasSame(this.tomorrow, 'day')) {
             return "Tomorrow";
           }
         }
@@ -163,8 +170,6 @@
         const newDate = DateTime.fromISO(val);
 
         if (newDate.isValid) {
-          // this.startDate = newDate;
-          // this.setStart(newDate);
           if (!this.endDate) {
             this.startDate = newDate;
           }
