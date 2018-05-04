@@ -19,7 +19,7 @@
           v-for="(day, index)
              in days"
           @click="selectDay(day, 'Mouse')"
-          @mouseover="setHover(day)"
+          v-on="!isTouchDevice() ? { mouseover: () => setHover(day) } : null"
           :key="index" class="day"
           :class="[
               { currentDay: day.isCurrentDay },
@@ -85,6 +85,10 @@
     },
 
     methods: {
+      isTouchDevice() {
+        return 'ontouchstart' in document.documentElement;
+      },
+
       selectDay(dt, type, field = null) {
         this.month.selectDay(dt, type, field);
         this.hasRange = this.month.hasRange;

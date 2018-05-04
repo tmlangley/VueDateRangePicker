@@ -1,6 +1,9 @@
 <template>
   <div id="app">
-    <date-picker />
+    <date-picker
+      startLabel="Check-In"
+      endLabel="Check-out"
+    />
   </div>
 </template>
 
@@ -58,9 +61,7 @@
     position: relative;
     max-width: 400px;
     min-width: 300px;
-
-    @include breakpoint(mlarge) {
-    }
+    margin-top: 2rem;
 
     label {
       position: absolute;
@@ -92,7 +93,7 @@
         outline: 0 none;
         background: transparent none;
         text-align: center;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 300;
         min-width: 0;
         width: auto;
@@ -114,9 +115,10 @@
         width: 50%;
         transform: translateY(-50%);
         background: #fff;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
         opacity: 1;
         transition: 0.2s opacity;
-        pointer-events: none;
       }
 
       input:focus + .display-date {
@@ -150,11 +152,18 @@
       border-radius: 25px;
       top: -6px;
       left: 0;
-      width: calc(100% - 40px);
       z-index: 10;
       transform: none;
       padding: 50px 20px 20px 20px;
       box-shadow: 0 13px 35px rgba(0, 0, 0, 0.1);
+
+      @media (hover: none) {
+        width: calc(100vw - 60px);
+      }
+
+      @include breakpoint(medium) {
+        width: calc(100% - 40px);
+      }
     }
 
     .controls {
@@ -248,6 +257,7 @@
       flex-basis: 14.285714286%;
       padding: 11px 0;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
       background: #fff;
       appearance: none;
       cursor: pointer;
@@ -258,35 +268,39 @@
       font-weight: bold;
     }
 
-    .focus,
-    .day:hover {
-      &:after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: $selection-size;
-        height: $selection-size;
-        background: $off-white;
-        z-index: -1;
-        border-radius: 50%;
+    @media not all and (hover: none) {
+      .focus,
+      .day:hover {
+        &:after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: $selection-size;
+          height: $selection-size;
+          background: $off-white;
+          z-index: -1;
+          border-radius: 50%;
+        }
       }
     }
 
-    .start + .focus:before,
-    .range + .focus:before,
-    .start + .day:hover:before,
-    .range + .day:hover:before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0;
-      transform: translate(0, -50%);
-      width: 50%;
-      height: $selection-size;
-      background: $off-white;
-      z-index: -1;
+    @media not all and (hover: none) {
+      .start + .focus:before,
+      .range + .focus:before,
+      .start + .day:hover:before,
+      .range + .day:hover:before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translate(0, -50%);
+        width: 50%;
+        height: $selection-size;
+        background: $off-white;
+        z-index: -1;
+      }
     }
 
     .currentDay {

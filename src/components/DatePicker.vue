@@ -28,7 +28,10 @@
           @keydown="moveFocus($event)"
           @click="calendarFocus=false"
         >
-        <span class="display-date">{{ startFormat }}</span>
+        <span
+          class="display-date"
+          @click="triggerOpen('start')"
+        >{{ startFormat }}</span>
       </div>
 
       <div class="form-element end">
@@ -47,7 +50,10 @@
           @keydown="moveFocus($event)"
           @click="calendarFocus=false"
         >
-        <span class="display-date">{{ endFormat }}</span>
+        <span
+          class="display-date"
+          @click="triggerOpen('end')"
+        >{{ endFormat }}</span>
       </div>
     </div>
 
@@ -200,6 +206,15 @@
     },
 
     methods: {
+      triggerOpen(field) {
+        if ('ontouchstart' in document.documentElement) {
+          this.calendarOpen = true;
+        } else {
+          if (this.$refs.hasOwnProperty(field)) {
+            this.$refs[field].focus();
+          }
+        }
+      },
       moveFocus(e) {
         let nextFocus = null;
         const index = this.focusIndex;
