@@ -3,35 +3,28 @@ import Day from './Day';
 import NoSelection from './input-states/NoSelection';
 
 export default class Month {
-  constructor(dt = DateTime.local(), options = null) {
+  constructor(dt, opts = {}) {
     this.dt = dt;
     this.ts = dt.ts;
     this.month = dt.month;
-    if (options && options.hasOwnProperty('childMonth') && !options.childMonth) {
-      this.prevMonth = new Month(dt.minus({ months: 1 }), { childMonth: true });
-      this.nextMonth = new Month(dt.plus({ months: 1 }), { childMonth: true });
-    }
-    this.currentDay = dt.day;
+    this.currentDay = DateTime.local();
     this._days = this.getDays();
-    const start = options && options.hasOwnProperty('start') ? options.start : null;
-    const end = options && options.hasOwnProperty('end') ? options.end : null;
+    this.dayIds = new Set();
 
     this.state = NoSelection;
 
     this.states = {
       hover: null,
       focus: null,
-      start: start,
-      end: end
+      start: opts.hasOwnProperty('start') ? opts.start : null,
+      end: opts.hasOwnProperty('end') ? opts.end : null
     };
 
     this.hasRange = this.states.start && this.states.end;
   }
 
-  * [Symbol.iterator]() {
-    for (let i=0; i<this._days.length; i++) {
-      yield this._days[i];
-    }
+  [Symbol.iterator]() {
+    return this._days.values();
   }
 
   getStartDate() {
@@ -49,17 +42,23 @@ export default class Month {
       day: monthStart.weekday,
     });
 
-    let month = [];
+    let month = new Map();
     for (let i = 0; i < 42; i++) {
-      month.push(new Day(currentDay, this.dt));
+      const day = new Day(currentDay, this.currentDay, this.dt.month);
+      month.set(day.key, day);
       currentDay = currentDay.plus({day: 1});
     }
     return month;
   }
 
   getDay(dateTime) {
-    const match = this._days.filter(({dt}) => dt.hasSame(dateTime, 'day'));
-    return match.length ? match[0] : null;
+    const dt = (dateTime instanceof Day) ? dateTime.dt : dateTime;
+    return this._days.get(Day.getKey(dt, this.month));
+  }
+
+  hasDay(dateTime) {
+    const dt = (dateTime instanceof Day) ? dateTime.dt : dateTime;
+    return this._days.has(Day.getKey(dt, this.month));
   }
 
   setHover(day = null) {
@@ -80,11 +79,15 @@ export default class Month {
     this.setHover();
     this.state.selectDay(this, day instanceof Day ? day : this.getDay(day), type, field);
     this.hasRange = this.states.start && this.states.end;
+    return {
+      start: this.states.start,
+      end: this.states.end
+    }
   }
 
   inRange(dt) {
     let { start, end } = this.states;
-    if (!start || !end) {
+    if (!start || !end || !start.hasOwnProperty('dt') || !end.hasOwnProperty('dt')) {
       return false;
     }
 

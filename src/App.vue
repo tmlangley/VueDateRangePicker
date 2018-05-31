@@ -111,8 +111,8 @@
         position: absolute;
         display: block;
         top: 50%;
-        left: 0;
-        width: 50%;
+        left: 3px;
+        width: calc(50% - 3px);
         transform: translateY(-50%);
         background: #fff;
         touch-action: manipulation;

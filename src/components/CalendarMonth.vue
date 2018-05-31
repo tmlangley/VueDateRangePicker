@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar-dropdown" v-on:mousedown="stopBlur">
+  <div class="calendar-dropdown" v-on:mousedown="stopBlur" v-if="month">
     <div class="controls">
       <div class="back" v-on:click="getLastMonth">&lt;</div>
       <div class="date">
@@ -38,14 +38,14 @@
 </template>
 
 <script>
-  import Month from '../Month';
   import Day from '../Day';
+  import Calendar from "../Calendar";
 
   export default {
     name: "calendar-month",
     data() {
       return {
-        month: new Month(),
+        month: null,
         hasRange: false,
         weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         start: null,
@@ -60,6 +60,11 @@
       days() {
         return [...this.month]
       }
+    },
+
+    created() {
+      this.calendar = new Calendar(this.nextStart, this.nextStart, this.nextEnd);
+      this.month = this.calendar.month;
     },
 
     watch: {
@@ -90,7 +95,7 @@
       },
 
       selectDay(dt, type, field = null) {
-        this.month.selectDay(dt, type, field);
+        this.calendar.selectDay(dt, type, field);
         this.hasRange = this.month.hasRange;
         this.start = this.month.getStartDate();
         this.end = this.month.getEndDate();
@@ -114,17 +119,13 @@
       },
 
       getLastMonth() {
-        this.month = new Month(this.month.dt.minus({ months: 1 }), {
-          start: this.start,
-          end: this.end
-        });
+        this.calendar.prevMonth();
+        this.$set(this, 'month', this.calendar.month);
       },
 
       getNextMonth() {
-        this.month = new Month(this.month.dt.plus({ months: 1 }), {
-          start: this.start,
-          end: this.end
-        });
+        this.calendar.nextMonth();
+        this.$set(this, 'month', this.calendar.month);
       },
 
       focusChanged(date) {
