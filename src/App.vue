@@ -3,18 +3,26 @@
     <date-picker
       startLabel="Check-In"
       endLabel="Check-out"
+      :restrictedDates="restrictedDates"
     />
   </div>
 </template>
 
 <script>
+  import { DateTime } from 'luxon';
   import DatePicker from './components/DatePicker';
 
   export default {
     name: 'app',
     components: { DatePicker },
     data() {
-      return {}
+      return {
+        restrictedDates: [{
+          end: DateTime.local(),
+        }, {
+          start: DateTime.local().plus({month: 2}),
+        }]
+      }
     }
   }
 
@@ -380,6 +388,20 @@
       &:after {
         left: 0;
         transform: translate(-50%, -50%);
+      }
+    }
+    .calendar .days .day.restricted {
+      color: $medium-gray;
+      cursor: default;
+      background: transparent;
+
+      &.notInMonth {
+        color: $light-gray;
+      }
+
+      &:before,
+      &:after {
+        display: none;
       }
     }
   }

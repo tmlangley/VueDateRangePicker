@@ -24,6 +24,7 @@
           :class="[
               { currentDay: day.isCurrentDay },
               { notInMonth: !day.inMonth },
+              { restricted: day.isRestricted },
               { start: isStart(day.ts) },
               { end: isEnd(day.ts) },
               { selected: isStart(day.ts) || isEnd(day.ts) },
@@ -54,7 +55,7 @@
       }
     },
 
-    props: ['nextStart', 'nextEnd'],
+    props: ['nextStart', 'nextEnd', 'restrictedDates'],
 
     computed: {
       days() {
@@ -63,7 +64,9 @@
     },
 
     created() {
-      this.calendar = new Calendar(this.nextStart, this.nextStart, this.nextEnd);
+      this.calendar = new Calendar(this.nextStart, this.nextStart, this.nextEnd, {
+        restrictedDates: this.restrictedDates
+      });
       this.month = this.calendar.month;
     },
 
@@ -95,6 +98,7 @@
       },
 
       selectDay(dt, type, field = null) {
+        if (dt.isRestricted) return;
         this.calendar.selectDay(dt, type, field);
         this.hasRange = this.month.hasRange;
         this.start = this.month.getStartDate();

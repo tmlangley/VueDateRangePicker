@@ -2,11 +2,19 @@ import { DateTime } from 'luxon';
 import Month from './Month';
 
 export default class Calendar {
-  constructor(dt = DateTime.local(), start = null, end = null) {
+  constructor(dt = DateTime.local(), start = null, end = null, opts = null) {
     this.dt = dt;
     this.currentDate = DateTime.local();
     this.start = start || this.currentDate;
     this.end = end || this.currentDate.plus({day: 1});
+    this.restrictedDates = null;
+
+    if (opts) {
+      if (opts.hasOwnProperty('restrictedDates')) {
+        this.restrictedDates = opts.restrictedDates;
+      }
+    }
+
     this.setMonths(dt);
   }
 
@@ -23,7 +31,8 @@ export default class Calendar {
   setMonths() {
     let monthOpts = {
       start: this.start,
-      end: this.end
+      end: this.end,
+      restrictedDates: this.restrictedDates
     };
 
     this.lastMonth = new Month(this.dt.minus({month: 1}), monthOpts);

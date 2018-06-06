@@ -5,6 +5,7 @@
         ref="calendar"
         :nextStart="startDate"
         :nextEnd="endDate"
+        :restrictedDates="restrictedDates"
         @startChanged="startChanged"
         @endChanged="endChanged"
         @stopBlur="stopBlur = true"
@@ -66,16 +67,18 @@
 
   export default {
     name: "date-picker",
-    components: {CalendarMonth},
+    components: { CalendarMonth },
     props: {
       range: {
         type: Boolean,
         default: true
       },
+
       showStartEndFields: {
         type: Boolean,
         default: true
       },
+
       format: {
         type: Object,
         default: () => {
@@ -85,25 +88,34 @@
           }
         }
       },
+
       start: {
         type: Object,
         default: () => {
           return DateTime.local()
         }
       },
+
       end: {
         type: Object,
         default: () => {
           return DateTime.local().plus({day: 1})
         }
       },
+
       startLabel: {
         type: String
       },
+
       endLabel: {
         type: String
+      },
+
+      restrictedDates: {
+        type: Array
       }
     },
+
     data() {
       return {
         startDate: null,
@@ -143,6 +155,7 @@
         }
         return this.startDate ? this.trueStart.toLocaleString(this.format) : '';
       },
+
       endFormat() {
         if (this.trueEnd) {
           if (this.trueEnd.hasSame(this.tomorrow, 'day')) {
@@ -194,11 +207,14 @@
           this.lockEnd = false;
           return;
         }
+
         if (!val.length) {
           this.endDate = null;
           return;
         }
+
         const newDate = DateTime.fromISO(val);
+
         if (newDate.isValid) {
           this.endDate = newDate;
         }
@@ -215,6 +231,7 @@
           }
         }
       },
+
       moveFocus(e) {
         let nextFocus = null;
         const index = this.focusIndex;

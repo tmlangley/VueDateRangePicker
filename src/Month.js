@@ -8,8 +8,14 @@ export default class Month {
     this.ts = dt.ts;
     this.month = dt.month;
     this.currentDay = DateTime.local();
+    if (opts) {
+      if (opts.hasOwnProperty('restrictedDates')) {
+        this.restrictedDates = opts.restrictedDates;
+      }
+    }
     this._days = this.getDays();
     this.dayIds = new Set();
+    this.restrictedDates = null;
 
     this.state = NoSelection;
 
@@ -44,7 +50,8 @@ export default class Month {
 
     let month = new Map();
     for (let i = 0; i < 42; i++) {
-      const day = new Day(currentDay, this.currentDay, this.dt.month);
+      const isRestricted = this.isRestrictedDay(currentDay);
+      const day = new Day(currentDay, this.currentDay, this.dt.month, isRestricted);
       month.set(day.key, day);
       currentDay = currentDay.plus({day: 1});
     }
@@ -92,5 +99,29 @@ export default class Month {
     }
 
     return (dt.diff(start.dt).toObject().milliseconds > 0 && dt.diff(end.dt).toObject().milliseconds < 0);
+  }
+
+  isRestrictedDay(day) {
+    let isRestricted = false;
+    if (this.restrictedDates) {
+      this.restrictedDates.forEach((range) => {
+        let hasStart = range.hasOwnProperty('start');
+        let hasEnd = range.hasOwnProperty('end');
+        if (hasStart && hasEnd) {
+          if (day.diff(range.start, 'days').toObject().days > -1 && day.diff(range.end, 'days').toObject().days < -1) {
+            isRestricted = true;
+          }
+        } else if (!hasStart && hasEnd) {
+          if (day.diff(range.end, 'days').toObject().days < -1) {
+            isRestricted = true;
+          }
+        } else if (hasStart && !hasEnd) {
+          if (day.diff(range.start, 'days').toObject().days > -1) {
+            isRestricted = true;
+          }
+        }
+      });
+    }
+    return isRestricted;
   }
 }
